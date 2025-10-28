@@ -79,17 +79,18 @@ results, knn_secs = run_knn(X_train, y_train, X_test, y_test, alg="FRT")
 ### FRT Pipeline
 
 ```python
-from frt import run_frt_pipeline
+from frt import frt_knn
 
 # Run complete FRT pipeline
-D_tr, D_te, meta = run_frt_pipeline(
+D_tr, D_te, meta = frt_knn(
     X_train, X_test,
-    n_trees=n_trees,
-    time_weight=time_weight,
-    time_factor=time_factor,
-    random_state=random_state,
-    level_edge_shift=level_edge_shift,
-    depth_shift=depth_shift
+    n_trees=16,
+    time_weight="auto",
+    random_state=123,
+    level_edge_shift=1,
+    n_jobs=-1,
+    depth_shift="auto",
+    time_factor=64.0,
 )
 ```
 
