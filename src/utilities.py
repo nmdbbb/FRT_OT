@@ -1,6 +1,6 @@
 """
 utilities.py — lightweight version
-Only contains run_knn; all FRT logic moved to frt.run_frt_pipeline
+Only contains run_knn; all FRT logic moved to frt.frt_knn
 """
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ from sklearn.metrics import accuracy_score
 import ot
 import time
 
-from frt import run_frt_pipeline
+from frt import frt_knn
 from gow import gow_sinkhorn_autoscale
 
 
@@ -34,6 +34,7 @@ def load_human_action_dataset(data_dir, dataset_name):
 
     return X_train, y_train, X_test, y_test
 
+
 def fix_array(X):
     X_new = np.empty((X.shape[0], X.shape[2], X.shape[1]))
 
@@ -41,6 +42,7 @@ def fix_array(X):
         X_new[i] = np.transpose(X[i])
 
     return X_new
+
 
 def load_ucr_dataset(data_dir, dataset_name):
     '''
@@ -57,6 +59,7 @@ def load_ucr_dataset(data_dir, dataset_name):
     print("Size of test data:", len(y_test))
 
     return X_train, y_train, X_test, y_test
+
 
 def run_knn(X_train, y_train, X_test, y_test,
             alg, k_list=[1, 3, 5, 10, 15, 20]):
@@ -76,22 +79,22 @@ def run_knn(X_train, y_train, X_test, y_test,
     n_trees = 16
     time_weight = "auto"
     time_factor = 2**6
-    random_state = 123
-    level_edge_shift = 1
     depth_shift = "auto"
+    level_edge_shift = 1
+    random_state = 123
     
 #=========================================================================
     if alg == "FRT":
         X_train = [x for x in X_train]
         X_test = [x for x in X_test]
-        D_tr, D_te, meta = run_frt_pipeline(
+        D_tr, D_te, meta = frt_knn(
             X_train, X_test,
             n_trees=n_trees,
             time_weight=time_weight,
             time_factor=time_factor,
-            random_state=random_state,
+            depth_shift=depth_shift,
             level_edge_shift=level_edge_shift,
-            depth_shift=depth_shift
+            random_state=random_state,
         )
     elif alg == "GOW":
         D_te = np.empty((test_len, train_len))

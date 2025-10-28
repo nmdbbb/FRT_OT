@@ -496,9 +496,10 @@ def compute_distance_matrices_global_frt(X_train_series: List[np.ndarray],
 # 7) Unified FRT pipeline (public entry)
 # ============================================================
 
-def frt_knn(X_train, X_test, n_trees=16, time_weight="auto",
-            random_state=123, level_edge_shift=1, n_jobs: int = -1,
-            depth_shift: int | str = "auto", time_factor: float = 64.0):
+def frt_knn(X_train, X_test, n_trees: int = 16,
+            time_weight: float | str = "auto", time_factor: float = 64.0,
+            depth_shift: int | str = "auto", level_edge_shift: int = 1,
+            random_state: Optional[int] = 123):
     """
     Complete FRT pipeline: build trees + compute normalized distance matrices.
 

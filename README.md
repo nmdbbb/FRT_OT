@@ -86,11 +86,10 @@ D_tr, D_te, meta = frt_knn(
     X_train, X_test,
     n_trees=16,
     time_weight="auto",
-    random_state=123,
-    level_edge_shift=1,
-    n_jobs=-1,
-    depth_shift="auto",
     time_factor=64.0,
+    depth_shift="auto",
+    level_edge_shift=1,
+    random_state=123,
 )
 ```
 
