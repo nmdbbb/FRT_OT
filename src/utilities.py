@@ -68,7 +68,6 @@ def run_knn(X_train, y_train, X_test, y_test,
     test_len = len(y_test)
     D_tr = np.ones((train_len, train_len))
     D_te = np.empty((test_len, train_len))
-    knn_secs = {}
 #=========================================================================
 
     # Set parameters of GOW
@@ -115,17 +114,14 @@ def run_knn(X_train, y_train, X_test, y_test,
     results = {}
     
     for k in k_list:
-        
-        knn_secs[k] = 0.0
-        knn_sec_start = time.time()
+
         k_actual = min(int(k), n_tr)
         clf = neighbors.KNeighborsClassifier(n_neighbors=k_actual, metric="precomputed")
         clf.fit(D_tr, y_train)
-        knn_secs[k] += time.time() - knn_sec_start
         acc = accuracy_score(y_test, clf.predict(D_te))
         print(f"Accuracy (k={k_actual}): {acc:.4f}")
         results[k_actual] = float(acc)
         results["build_tree_sec"] = float(meta.build_tree_sec) if alg == "FRT" else 0.0
         results["distance_calc_sec"] = float(meta.distance_calc_sec) if alg == "FRT" else 0.0
         
-    return results,knn_secs
+    return results
