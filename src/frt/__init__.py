@@ -8,7 +8,7 @@ Highlights
 - Auto depth_shift based on data spread (optional).
 - Deterministic-friendly 2-HST FRT builder.
 - Closed-form Tree-Wasserstein computation with local-subtree pruning.
-- Unified pipeline `run_frt_pipeline()` for training/testing distance matrices.
+- Unified pipeline `frt_knn()` for training/testing distance matrices.
 """
 from __future__ import annotations
 import time
@@ -496,9 +496,9 @@ def compute_distance_matrices_global_frt(X_train_series: List[np.ndarray],
 # 7) Unified FRT pipeline (public entry)
 # ============================================================
 
-def run_frt_pipeline(X_train, X_test, n_trees=16, time_weight="auto",
-                     random_state=123, level_edge_shift=1, n_jobs: int = -1,
-                     depth_shift: int | str = "auto", time_factor: float = 64.0):
+def frt_knn(X_train, X_test, n_trees=16, time_weight="auto",
+            random_state=123, level_edge_shift=1, n_jobs: int = -1,
+            depth_shift: int | str = "auto", time_factor: float = 64.0):
     """
     Complete FRT pipeline: build trees + compute normalized distance matrices.
 
