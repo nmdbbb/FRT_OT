@@ -1,17 +1,18 @@
-# FRT Project: Fast Random Tree-Wasserstein Distance for Time Series Classification
+# FRT_OT: Fast Random Tree-Wasserstein Distance for Time Series Classification
 
-This project implements and evaluates the Fast Random Tree (FRT) algorithm for computing Tree-Wasserstein distances in time series classification tasks. The implementation includes both FRT and GOW (Generalized Optimal Warping) methods for comparison.
+This project implements and evaluates the Fast Random Tree (FRT) algorithm for computing Tree-Wasserstein distances in time series classification tasks.
+
+Repository: `https://github.com/nmdbbb/FRT_OT.git`
 
 ## Overview
 
 The project focuses on time series classification using advanced distance metrics:
 - **FRT (Fast Random Tree)**: A novel approach using hierarchically separated trees to compute Tree-Wasserstein distances efficiently
-- **GOW (Generalized Optimal Warping)**: An optimal transport-based method for time series alignment
 
 ## Project Structure
 
 ```
-FRTproject/
+FRT_OT/
 ├── data/                          # Datasets
 │   ├── Human_Actions/            # Human action recognition datasets
 │   │   ├── MSRAction3D/         # Microsoft Research Action3D dataset
@@ -26,7 +27,6 @@ FRTproject/
 │       └── ItalyPowerDemand/    # Power consumption data
 ├── src/                          # Source code
 │   ├── frt/                     # FRT algorithm implementation
-│   ├── gow/                     # GOW algorithm implementation
 │   ├── utilities.py             # Utility functions and main pipeline
 │   └── test.ipynb               # Jupyter notebook for experiments
 ├── results/                      # Experimental results
@@ -42,12 +42,6 @@ FRTproject/
 - **Closed-form Tree-Wasserstein**: Efficient distance computation
 - **Global Pipeline**: Unified training and testing distance matrix computation
 
-### GOW Algorithm (`src/gow/`)
-- **Optimal Transport**: Sinkhorn algorithm for transport matrix computation
-- **Function-based Warping**: Multiple monotonic functions for time alignment
-- **Coordinate Descent**: Iterative optimization for weight vectors
-- **Auto-scaling**: Automatic function scaling based on sequence lengths
-
 ### Datasets
 - **UCR Time Series Archive**: Standard benchmark datasets for time series classification
 - **Human Action Recognition**: 3D motion capture data for action classification
@@ -57,8 +51,8 @@ FRTproject/
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd FRTproject
+git clone https://github.com/nmdbbb/FRT_OT.git
+cd FRT_OT
 ```
 
 2. Install dependencies:
@@ -79,10 +73,7 @@ from utilities import run_knn, load_ucr_dataset, load_human_action_dataset
 X_train, y_train, X_test, y_test = load_ucr_dataset("data/UCR", "BasicMotions")
 
 # Run FRT-based KNN classification
-results = run_knn(X_train, y_train, X_test, y_test, alg="FRT")
-
-# Run GOW-based KNN classification
-results = run_knn(X_train, y_train, X_test, y_test, alg="GOW")
+results, knn_secs = run_knn(X_train, y_train, X_test, y_test, alg="FRT")
 ```
 
 ### FRT Pipeline
@@ -93,24 +84,16 @@ from frt import run_frt_pipeline
 # Run complete FRT pipeline
 D_tr, D_te, meta = run_frt_pipeline(
     X_train, X_test,
-    n_trees=16,
-    time_weight="auto",
-    random_state=123,
-    level_edge_shift=1,
-    n_jobs=-1
+    n_trees=n_trees,
+    time_weight=time_weight,
+    time_factor=time_factor,
+    random_state=random_state,
+    level_edge_shift=level_edge_shift,
+    depth_shift=depth_shift
 )
 ```
 
-### GOW Distance
-
-```python
-from gow import gow_sinkhorn_autoscale
-import ot
-
-# Compute GOW distance between two sequences
-C = ot.dist(sequence1, sequence2, metric="minkowski")
-distance = gow_sinkhorn_autoscale([], [], C)
-```
+<!-- Additional algorithms intentionally omitted in this README revision -->
 
 ## Algorithm Details
 
@@ -120,19 +103,45 @@ distance = gow_sinkhorn_autoscale([], [], C)
 - Computes Tree-Wasserstein distances in closed form
 - Supports multiple trees for ensemble methods
 
-### GOW (Generalized Optimal Warping)
-- Implements optimal transport with Sinkhorn algorithm
-- Uses coordinate descent for weight optimization
-- Supports multiple warping functions (polynomial, exponential, logarithmic, etc.)
-- Auto-scales functions based on sequence lengths
-
 ## File Descriptions
 
 - `src/utilities.py`: Main pipeline and utility functions
 - `src/frt/__init__.py`: FRT algorithm implementation
-- `src/gow/__init__.py`: GOW algorithm implementation
 - `src/test.ipynb`: Experimental notebook
 - `results/`: results
+
+## Extending: Plug in a new distance algorithm
+
+You can add another distance algorithm alongside FRT by extending `run_knn` in `src/utilities.py`.
+
+1) Implement or import your distance function to produce a test–train distance matrix `D_te` and (optionally) a train–train matrix `D_tr`.
+
+2) Add a new branch in `run_knn`:
+
+```python
+# inside utilities.run_knn(...)
+elif alg == "MY_ALG":
+    # Prepare any parameters and precomputations here
+    # Build D_tr (optional, used when metric="precomputed")
+    # Build D_te (shape: n_test x n_train)
+    D_tr = ...  # square (n_train x n_train)
+    D_te = ...  # rectangular (n_test x n_train)
+```
+
+3) Keep the KNN call unchanged, since it uses the precomputed metric:
+
+```python
+from sklearn import neighbors
+from sklearn.metrics import accuracy_score
+clf = neighbors.KNeighborsClassifier(n_neighbors=k_actual, metric="precomputed")
+clf.fit(D_tr, y_train)
+acc = accuracy_score(y_test, clf.predict(D_te))
+```
+
+Notes:
+- Normalize distances (e.g., divide by `max(D_tr)`) for stability.
+- Ensure `D_te` and `D_tr` are non-negative and symmetric (`D_tr`) as required.
+- For efficiency, prefer vectorized computation and avoid nested Python loops when possible.
 
 ## Contributing
 
